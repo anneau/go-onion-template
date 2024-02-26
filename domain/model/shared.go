@@ -14,3 +14,12 @@ func NewID[T any]() (ID[T], error) {
 
 	return ID[T]{Value: uid}, nil
 }
+
+func NewIDFrom[T any](v string) (ID[T], error) {
+	uid, err := uuid.FromString(v)
+	if err != nil {
+		return ID[T]{}, err
+	}
+
+	return ID[T]{Value: uid}, nil
+}
