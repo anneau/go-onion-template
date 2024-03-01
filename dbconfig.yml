@@ -1,4 +1,8 @@
 development:
   dialect: postgres
-  datasource: host=${DB_HOSTNAME} dbname=${DB_DATABASE} user=${DB_USER} password=${DB_PASSWORD} port=5432 sslmode=disable
+  datasource: host=db dbname=${DB_DATABASE} user=${DB_USER} password=${DB_PASSWORD} port=5432 sslmode=disable
+  dir: ./migrations
+test:
+  dialect: postgres
+  datasource: host=db-test dbname=${DB_DATABASE} user=${DB_USER} password=${DB_PASSWORD} port=5432 sslmode=disable
   dir: ./migrations
