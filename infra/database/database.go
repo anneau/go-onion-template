@@ -2,30 +2,45 @@ package database
 
 import (
 	"database/sql"
-	"strconv"
+	"fmt"
 	"time"
 
 	"github.com/anneau/go-template/config"
-	"github.com/go-sql-driver/mysql"
+	errctrl "github.com/anneau/go-template/errorctrl"
+	_ "github.com/lib/pq"
 )
 
 func NewConnection(config *config.DatabaseConfig) (*sql.DB, error) {
-	c := mysql.Config{
-		User: config.User,
-		Passwd: config.Password,
-		Net: "tcp",
-		Addr: config.Host + ":" + strconv.Itoa(config.Port),
-	}
+	dns := fmt.Sprintf(
+		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		config.Host,
+		config.Port,
+		config.User,
+		config.Password,
+		config.Database,
+	)
 
-	conn, err := sql.Open("mysql", c.FormatDSN())
+	db, err := sql.Open("postgres", dns)
 
 	if err != nil {
 		return nil, err
 	}
 
-	conn.SetConnMaxLifetime(time.Minute * 3)
-	conn.SetMaxOpenConns(10)
-	conn.SetMaxIdleConns(10)
+	db.SetConnMaxLifetime(time.Minute * 3)
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(10)
 
-	return conn, nil
+	return db, nil
+}
+
+func NewTestConnection() *sql.DB {
+	c := config.DatabaseConfig{
+		Host:     "db-test",
+		User:     "postgres",
+		Port:     5432,
+		Password: "postgres",
+		Database: "postgres",
+	}
+
+	return errctrl.Must(NewConnection(&c))
 }

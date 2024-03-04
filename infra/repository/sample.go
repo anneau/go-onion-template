@@ -12,22 +12,22 @@ var _ model.SampleRepository = (*sampleRepository)(nil)
 
 type sampleRepository struct {
 	ctx context.Context
-	t   sql.Tx
+	tx  *sql.Tx
 }
 
-func NewSampleRepository(ctx context.Context) model.SampleRepository {
-	return &sampleRepository{ctx: ctx}
+func NewSampleRepository(ctx context.Context, tx *sql.Tx) model.SampleRepository {
+	return &sampleRepository{ctx: ctx, tx: tx}
 }
 
 func (r *sampleRepository) Find(id model.SampleID) (*model.Sample, error) {
-	data := &table.SampleTable{}
-	err := r.t.QueryRowContext(r.ctx, "SELECT * FROM sample WHERE id = :id;", sql.Named("id", id.Value)).Scan(&data)
+	table := &table.SampleTable{}
+	err := r.tx.QueryRowContext(r.ctx, "SELECT s.id, s.name FROM samples as s WHERE s.id = $1;", id.Value).Scan(&table.ID, &table.Name)
 
 	if err != nil {
 		return nil, err
 	}
 
-	id, err = model.NewIDFrom[model.Sample](data.ID)
+	id, err = model.NewIDFrom[model.Sample](table.ID)
 
 	if err != nil {
 		return nil, err
@@ -35,6 +35,6 @@ func (r *sampleRepository) Find(id model.SampleID) (*model.Sample, error) {
 
 	return &model.Sample{
 		SampleID: id,
-		Name:     data.Name,
+		Name:     table.Name,
 	}, nil
 }
